@@ -1,0 +1,2 @@
+- Open it in your localhost using php -S command 
+- Goal of the project is to encode and decode the user input using generated key
