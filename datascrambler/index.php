@@ -5,8 +5,8 @@ session_start();
 $string = "abcdefghijklmnopqrstuvwxyz0123456789";
 
 
-if (isset($_GET['key'])) {
-  $key = urldecode($_GET['key']);
+if (isset($_SESSION['key'])) {
+  $key = $_SESSION['key'];
 } else {
   $key = "";
 }
@@ -28,6 +28,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
     case 'encodeBtn':
       $key = $_POST['key'];
+      $_SESSION['key'] = $key;
       $text = $_POST['text'];
       $_SESSION['text'] = $text;
       if ($text != "") {
@@ -38,6 +39,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
     case 'decodeBtn':
       $key = $_POST['key'];
+      $_SESSION['key'] = $key;
       $text = $_POST['text'];
       $_SESSION['text'] = $text;
       if ($text != "") {
@@ -51,13 +53,10 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
   }
 
    
-   header("Location: index.php?key=$key");
+   header("Location: index.php");
    exit();
    
 }
-
-
-
 if (isset($_SESSION['result'])) {
   $result = $_SESSION['result'];
  
