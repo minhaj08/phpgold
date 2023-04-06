@@ -1,77 +1,124 @@
 <?php
 
+session_start();
+
 $string = "abcdefghijklmnopqrstuvwxyz0123456789";
 
-if (isset($_POST['generateKeyBtn'])) {
-  $key = generateKey($string);
+
+if (isset($_GET['key'])) {
+  $key = urldecode($_GET['key']);
 } else {
   $key = "";
 }
-
 $result = "";
+$text = "";
 
-if (isset($_POST['encodeBtn'])) {
-  $key = $_POST['key'];
-  $text = $_POST['text'];
-  if($text!=""){
-    $result= encode($text, $key, $string);
+
+if ($_SERVER['REQUEST_METHOD'] === 'POST') {
+
+  // get clicked button.
+  $button = $_POST['submit'];
+
+ 
+  switch($button) {
+    case 'generateKeyBtn':
+      $key = generateKey($string);
+      $_SESSION['key'] = $key;
+      break;
+
+    case 'encodeBtn':
+      $key = $_POST['key'];
+      $text = $_POST['text'];
+      $_SESSION['text'] = $text;
+      if ($text != "") {
+        $result = encode($text, $key, $string);
+        $_SESSION['result'] = $result;
+      }
+      break;
+
+    case 'decodeBtn':
+      $key = $_POST['key'];
+      $text = $_POST['text'];
+      $_SESSION['text'] = $text;
+      if ($text != "") {
+        $result = decode($text, $key, $string);
+        $_SESSION['result'] = $result;
+      }
+      break;
+
+    default:
+      break;
   }
-} 
 
-if (isset($_POST['decodeBtn'])) {
-  $key = $_POST['key'];
-  $text = $_POST['text'];
-  if($text!=""){
-    $result= decode($text, $key, $string);
-  }
-} 
+   
+   header("Location: index.php?key=$key");
+   exit();
+   
+}
 
-//function for generating the key
+
+
+if (isset($_SESSION['result'])) {
+  $result = $_SESSION['result'];
+ 
+}
+if (isset($_SESSION['text'])) {
+  $text = $_SESSION['text'];
+ 
+}
+
+// Function for generating the key
 function generateKey($string) {
-    
-    $chars = str_split($string);
+  $chars = str_split($string);
+  shuffle($chars);
+  $key = implode('', $chars);
+  return $key;
+}
+
+// Function for encoding the text
+function encode($text, $key, $string) {
+
+  $text = strtolower($text);
+  $chars_arr = str_split($string);
+  $key_arr = str_split($key);
+  $text_arr = str_split($text);  
+  $encrypted_text = "";
   
-    
-    shuffle($chars);
-    $key = implode('', $chars);
-  
-    return $key;
-  }
-
-//function for encoding the text
-  function encode($text, $key, $string) {
-
-    $text = strtolower($text);
-    $chars_arr = str_split($string);
-    $key_arr = str_split($key);
-    $text_arr = str_split($text);  
-    $encrypted_text = "";
-
-    foreach ($text_arr as $char) {
-    
-      $pos = array_search($char, $chars_arr);
-    
-      $encrypted_text .= $key_arr[$pos];
+  foreach ($text_arr as $char)
+  {
+    if($char == " ") {
+      $encrypted_text .= " ";
+       continue;
     }
-    return $encrypted_text;
+    $pos = array_search($char, $chars_arr);
+    $encrypted_text .= $key_arr[$pos];
   }
   
-//function for decoding  the text
-  function decode($text, $key, $string) {
-    $text = strtolower($text);    
-    $chars_arr = str_split($string);
-    $key_arr = str_split($key);
-    $text_arr = str_split($text);
-    $decrypted_text = "";
+  return $encrypted_text;
+}
 
-    foreach ($text_arr as $char) {
-     
-      $pos = array_search($char, $key_arr);
-    
-      $decrypted_text .= $chars_arr[$pos];
+// Function for decoding the text
+function decode($text, $key, $string) {
+
+  $text = strtolower($text);    
+  $chars_arr = str_split($string);
+  $key_arr = str_split($key);
+  $text_arr = str_split($text);
+  $decrypted_text = "";
+
+  foreach ($text_arr as $char) 
+  {
+    if($char == " ") {
+      $decrypted_text .= " ";
+       continue;
     }
-    return $decrypted_text;
+    $pos = array_search($char, $key_arr);
+    $decrypted_text .= $chars_arr[$pos];
   }
+  return $decrypted_text;
+}
+
+session_destroy();
 ?>
 <!DOCTYPE html>
 <html lang="en">
@@ -101,10 +148,10 @@ function generateKey($string) {
       </div>
       <form class="mt-8 space-y-3" action="index.php" method="POST">
         <div class="flex space-x-4">
-          <button type="submit" name="generateKeyBtn" id="generateKeyBtn">Generate
-            Key</button>
-          <button type="submit" name="encodeBtn" id="encodeBtn">Encode Text</button>
-          <button type="submit" name="decodeBtn" id="decodeBtn">Decode Text</button>
+          <button type="submit" name="submit" value="generateKeyBtn">Generate Key</button>
+          <button type="submit" name="submit" value="encodeBtn">Encode Text</button>
+          <button type="submit" name="submit" value="decodeBtn">Decode Text</button>
+
         </div>
         <div class="grid grid-cols-1 space-y-2">
           <label class="text-sm font-bold text-gray-500 tracking-wide">Key</label>
@@ -114,7 +161,8 @@ function generateKey($string) {
         <div class="grid grid-cols-1 space-y-2">
           <label class="text-sm font-bold text-gray-500 tracking-wide">Your Text</label>
           <div class="flex items-center justify-center w-full">
-            <textarea class="w-full border-dashed border-2 border-sky-500" name="text" id="text"></textarea>
+            <textarea class="w-full border-dashed border-2 border-sky-500" name="text"
+              id="text"><?php echo $text; ?></textarea>
           </div>
         </div>
 
