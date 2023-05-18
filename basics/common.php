@@ -1,5 +1,4 @@
 <?php
-
 //Examples of printf
 
 //Examples of sprintf
@@ -14,8 +13,4 @@
 
 //array, shallow copy vs deep copy
 
-//json, serialize
-
-//file upload
-
-//file
+//json, serialize, unserialize
